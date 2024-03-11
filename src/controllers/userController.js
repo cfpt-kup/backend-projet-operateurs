@@ -102,15 +102,23 @@ exports.logout = async (req, res) => {
     }
 };
 
+// User profile Controller
 exports.getUserProfile = async (req, res) => {
     try {
         // The req.user is already populated by the auth middleware
-        // So, you can directly send back the user information
-        // Exclude sensitive information like password and tokens
-        const { password, tokens, ...userProfile } = req.user.toObject();
-        res.status(200).send(userProfile);
+        const userObject = req.user.toObject();
+
+        // Delete sensitive information and fields not required in the response
+        delete userObject.password;
+        delete userObject.tokens;
+        delete userObject._id;  // Exclude _id from the response
+        delete userObject.__v;  // Exclude __v from the response
+        delete userObject.access_code; // Exclude access_code from the response
+
+        res.status(200).json(userObject); // Use json to ensure correct Content-Type
     } catch (error) {
-        res.status(400).send({ error: 'Unable to fetch profile.' });
+        console.error(error);
+        res.status(400).json({ error: 'Unable to fetch profile.' });
     }
 };
 
