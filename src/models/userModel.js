@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
     school_class: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    access_code: { type: String, required: true }
+    access_code: { type: String, required: true },
+    tokens: [{ token: { type: String, required: true } }] // Add this line to store multiple tokens
 });
 
 // Hash the user's password before saving
@@ -19,6 +20,11 @@ userSchema.pre('save', async function (next) {
     }
     next();
 });
+
+// Add a method to compare the entered password with the hashed password
+userSchema.methods.matchPassword = async function (enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+};
 
 // Compile the schema into a model
 const User = mongoose.model('User', userSchema);
