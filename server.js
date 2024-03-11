@@ -6,7 +6,7 @@ const app = express();
 // Connect to Database
 connectDB();
 
-// Middleware
+// Middleware for parsing JSON bodies
 app.use(express.json({ extended: false }));
 
 // Define routes

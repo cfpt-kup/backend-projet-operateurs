@@ -102,4 +102,16 @@ exports.logout = async (req, res) => {
     }
 };
 
+exports.getUserProfile = async (req, res) => {
+    try {
+        // The req.user is already populated by the auth middleware
+        // So, you can directly send back the user information
+        // Exclude sensitive information like password and tokens
+        const { password, tokens, ...userProfile } = req.user.toObject();
+        res.status(200).send(userProfile);
+    } catch (error) {
+        res.status(400).send({ error: 'Unable to fetch profile.' });
+    }
+};
+
 
