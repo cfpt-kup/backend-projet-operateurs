@@ -53,7 +53,6 @@ exports.signup = async (req, res) => {
 // Login Controller
 exports.login = async (req, res) => {
     const { email, password } = req.body;
-
     try {
         const user = await User.findOne({ email });
         if (!user) {
@@ -65,8 +64,12 @@ exports.login = async (req, res) => {
             return res.status(401).json({ msg: 'Invalid email or password.' });
         }
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        user.tokens.push({ token }); // Save token to the user document
+        // Cleanup expired tokens right here
+        await user.removeExpiredTokens();
+
+        //const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' }); // 1h token for production
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1m' }); // 1m token for tests
+        user.tokens.push({ token }); // Save the new token to the user document
         await user.save();
 
         res.json({
@@ -105,21 +108,23 @@ exports.logout = async (req, res) => {
 // User profile Controller
 exports.getUserProfile = async (req, res) => {
     try {
-        // The req.user is already populated by the auth middleware
+        // Assuming the req.user is populated by the auth middleware
+        // First, remove expired tokens if present
+        await req.user.removeExpiredTokens();
+
+        // Convert user document to a plain JavaScript object
         const userObject = req.user.toObject();
 
-        // Delete sensitive information and fields not required in the response
-        delete userObject.password;
-        delete userObject.tokens;
-        delete userObject._id;  // Exclude _id from the response
-        delete userObject.__v;  // Exclude __v from the response
-        delete userObject.access_code; // Exclude access_code from the response
+        // A more elegant approach to exclude fields
+        const fieldsToExclude = ['password', 'tokens', '_id', '__v', 'access_code'];
+        fieldsToExclude.forEach(field => delete userObject[field]);
 
-        res.status(200).json(userObject); // Use json to ensure correct Content-Type
+        res.status(200).json(userObject);
     } catch (error) {
         console.error(error);
         res.status(400).json({ error: 'Unable to fetch profile.' });
     }
 };
+
 
 

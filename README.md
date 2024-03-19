@@ -18,6 +18,15 @@ git push -u origin main
 docker-compose up --build
 ```
 
+### Build Docker Image 
+```
+docker-compose build
+```
+
+### Restart the containers
+```
+docker-compose up -d
+```
 
 ### Visualize README.md in VS Code
 ```
