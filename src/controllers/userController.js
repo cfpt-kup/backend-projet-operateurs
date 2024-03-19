@@ -66,6 +66,7 @@ exports.login = async (req, res) => {
 
         // Cleanup expired tokens right here
         await user.removeExpiredTokens();
+        await user.save();
 
         //const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' }); // 1h token for production
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1m' }); // 1m token for tests
@@ -111,6 +112,7 @@ exports.getUserProfile = async (req, res) => {
         // Assuming the req.user is populated by the auth middleware
         // First, remove expired tokens if present
         await req.user.removeExpiredTokens();
+        await user.save();
 
         // Convert user document to a plain JavaScript object
         const userObject = req.user.toObject();
